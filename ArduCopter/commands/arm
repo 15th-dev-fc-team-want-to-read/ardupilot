@@ -1,0 +1,4 @@
+# mode guided
+rc 3 1000
+arm throttle
+rc 6 2000

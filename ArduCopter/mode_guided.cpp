@@ -527,7 +527,8 @@ void ModeGuided::set_accel(const Vector3f& acceleration, bool use_yaw, float yaw
 // set_velocity - sets guided mode's target velocity
 void ModeGuided::set_velocity(const Vector3f& velocity, bool use_yaw, float yaw_cd, bool use_yaw_rate, float yaw_rate_cds, bool relative_yaw, bool log_request)
 {
-    set_velaccel(velocity, Vector3f(), use_yaw, yaw_cd, use_yaw_rate, yaw_rate_cds, relative_yaw, log_request);
+    // set_velaccel(velocity, Vector3f(), use_yaw, yaw_cd, use_yaw_rate, yaw_rate_cds, relative_yaw, log_request);
+    set_velaccel(velocity, Vector3f(), true, 0.0, true, 0.0, true, log_request);
 }
 
 // set_velaccel - sets guided mode's target velocity and acceleration

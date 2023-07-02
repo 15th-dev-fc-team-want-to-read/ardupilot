@@ -1,0 +1,18 @@
+module load graph
+
+# roll pitch throttle yaw
+# graph RC_CHANNELS.chan1_raw RC_CHANNELS.chan2_raw RC_CHANNELS.chan3_raw RC_CHANNELS.chan4_raw
+
+# graph SIMSTATE.roll SIMSTATE.pitch SIMSTATE.yaw
+# graph SIMSTATE.xgyro SIMSTATE.ygyro SIMSTATE.zgyro
+
+# attitude (deg)
+graph degrees(ATTITUDE.roll) degrees(ATTITUDE.pitch) degrees(ATTITUDE.yaw)
+# graph degrees(ATTITUDE.roll) NAV_CONTROLLER_OUTPUT.nav_roll degrees(ATTITUDE.pitch) NAV_CONTROLLER_OUTPUT.nav_pitch degrees(ATTITUDE.yaw)
+
+# angular rate (deg/sec) 
+graph degrees(ATTITUDE.rollspeed) degrees(ATTITUDE.pitchspeed) degrees(ATTITUDE.yawspeed)
+
+# position/velocity
+graph LOCAL_POSITION_NED.x  LOCAL_POSITION_NED.y  LOCAL_POSITION_NED.z
+# graph LOCAL_POSITION_NED.vx LOCAL_POSITION_NED.vy LOCAL_POSITION_NED.vz
