@@ -15,10 +15,14 @@ local copter_guided_mode_num = 4
 local stage = 0
 local cruise_speed = 10.0  -- m/sec
 local cruise_counter = 0
-local cruise_counter_max_north = 40  -- counts (10counts = 1sec)
-local cruise_counter_max_south = 30  -- counts (10counts = 1sec)
+local cruise_counter_max_north = 30  -- counts (10counts = 1sec)
+local cruise_counter_max_south = 35  -- counts (10counts = 1sec)
+local cruise_pitch_angle_north = -30.0  -- deg
+local cruise_pitch_angle_south =  30.0  -- deg
 local pitch_up_rate1 = 48.0  -- deg/sec
-local pitch_up_rate2 = 180.0  -- deg/sec
+local pitch_up_angle_threshold1 = 20  -- deg
+local pitch_up_rate2 = 160.0  -- deg/sec
+local pitch_up_angle_threshold2 = -70  -- deg
 local pitch_deg_prev = 1.0e8
 
 -- the main update function that uses the takeoff and velocity controllers to fly a rough square pattern
@@ -63,9 +67,9 @@ function update()
           gcs:send_text(0, "transition to stage4: Pitch up")
         end
 
-        -- send velocity request
-        if not (vehicle:set_target_velocity_NED(target_vel)) then
-          gcs:send_text(0, "failed to execute velocity command")
+        -- -- send angle request
+        if not (vehicle:set_target_angle_and_climbrate(0.0, cruise_pitch_angle_north, 0.0, 0.0, false, 0.0)) then
+          gcs:send_text(0, "failed to execute angle command")
         end
 
       elseif (stage == 4) then  -- Stage4: pitch up and transition to cruise to south
@@ -80,7 +84,7 @@ function update()
         end
 
         local pitch_deg = ahrs:get_pitch() * 180.0 / 3.14
-        if (pitch_deg > 25.0) then
+        if (pitch_deg > pitch_up_angle_threshold1) then
           stage = stage + 1
           cruise_counter = 0
           gcs:send_text(0, "transition to stage5: Cruise to South")
@@ -100,9 +104,9 @@ function update()
           gcs:send_text(0, "transition to stage6: Pitch up")
         end
 
-        -- send velocity request
-        if not (vehicle:set_target_velocity_NED(target_vel)) then
-          gcs:send_text(0, "failed to execute velocity command")
+        -- send angle request
+        if not (vehicle:set_target_angle_and_climbrate(0.0, cruise_pitch_angle_south, 0.0, 0.0, false, 0.0)) then
+          gcs:send_text(0, "failed to execute angle command")
         end
 
       elseif (stage == 6) then  -- Stage6: pitch up and transition to cruise to north
@@ -117,7 +121,7 @@ function update()
         end
 
         local pitch_deg = ahrs:get_pitch() * 180.0 / 3.14
-        if (pitch_deg < 0.0 and pitch_deg > -50.0 and pitch_deg > pitch_deg_prev) then
+        if (pitch_deg < 0.0 and pitch_deg > pitch_up_angle_threshold2 and pitch_deg > pitch_deg_prev) then
           stage = 3  -- north cruise
           cruise_counter = 0
           gcs:send_text(0, "transition to stage3: Cruise to North")
