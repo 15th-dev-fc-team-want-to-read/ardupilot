@@ -128,6 +128,24 @@ function update()
         end
         pitch_deg_prev = pitch_deg
       end
+
+      -- Geo fence
+      if stage >= 3 then
+        local home = ahrs:get_home()
+        local curr_loc = ahrs:get_location()
+        if home and curr_loc then
+          local vec_from_home = home:get_distance_NED(curr_loc)
+          local alt = -vec_from_home:z()
+          local x = vec_from_home:x()
+          local y = vec_from_home:y()
+          if alt < 10 or 50 < alt or x < -10 or 40 < x or math.abs(y) > 10 then
+            vehicle:set_mode(6)
+            gcs:send_text(0, "Geo fence violation: transition to RTL")
+            stage = -1
+          end
+        end
+      end
+
     end
   end
 
