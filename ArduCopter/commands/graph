@@ -15,4 +15,10 @@ graph degrees(ATTITUDE.rollspeed) degrees(ATTITUDE.pitchspeed) degrees(ATTITUDE.
 
 # position/velocity
 graph LOCAL_POSITION_NED.x  LOCAL_POSITION_NED.y  LOCAL_POSITION_NED.z
-# graph LOCAL_POSITION_NED.vx LOCAL_POSITION_NED.vy LOCAL_POSITION_NED.vz
+graph LOCAL_POSITION_NED.vx LOCAL_POSITION_NED.vy LOCAL_POSITION_NED.vz
+
+# IMU acc
+graph SIMSTATE.xacc SIMSTATE.yacc SIMSTATE.zacc
+
+# z motion
+graph LOCAL_POSITION_NED.z LOCAL_POSITION_NED.vz SIMSTATE.zacc degrees(ATTITUDE.pitchspeed)

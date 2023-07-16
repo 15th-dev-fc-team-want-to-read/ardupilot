@@ -1,4 +1,4 @@
--- command a Copter to takeoff and vertical loop fly
+-- command a Copter to takeoff and loop fly
 --
 -- CAUTION: This script only works for Copter
 -- this script waits for the vehicle to be armed and RC6 input > 1800 and then:
@@ -6,9 +6,9 @@
 --    b) takeoff to 'takeoff_alt_above_home' meters
 --    c) rotate to 'yaw_target'
 --    d) cruise to x direction for 'cruise_counter_max1 / 10' sec
---    e) pitch up with 'pitch_up_rate1' deg/sec
+--    e) pitch up with 'pitch_up_rate1' deg/sec, 1st half of the loop flying
 --    f) cruise to -x direction for 'cruise_counter_max2 / 10' sec
---    g) pitch up with 'pitch_up_rate2' deg/sec
+--    g) pitch up with 'pitch_up_rate2' deg/sec, 2nd half of the loop flying
 --    h) goto (d)
 
 local takeoff_alt_above_home = 20  -- m
@@ -25,9 +25,9 @@ local pitch_up_rate2 = 160.0  -- deg/sec
 local pitch_up_angle_threshold2 = -70  -- deg
 local pitch_deg_prev = 1.0e8
 
-local yaw_target = 0.0
+local yaw_target = 0.0  -- deg
 
--- the main update function that uses the takeoff and velocity controllers to fly a rough square pattern
+-- the main update function that uses the takeoff and loop fly
 function update()
   if not arming:is_armed() then -- reset state when disarmed
     stage = 0
@@ -85,7 +85,7 @@ function update()
 
       elseif (stage == 5) then  -- Stage5: pitch up and transition to cruise to -X
         local roll_rate_rs = 0.0
-        local pitch_rate_rs = pitch_up_rate1 * math.rad(180.0) / 180.0
+        local pitch_rate_rs = math.rad(pitch_up_rate1)
         local yaw_rate_rs = 0.0
         local thrust = 1.0
 
@@ -94,7 +94,7 @@ function update()
           gcs:send_text(0, "failed to execute rate command")
         end
 
-        local pitch_deg = ahrs:get_pitch() * 180.0 / math.rad(180.0)
+        local pitch_deg = math.deg(ahrs:get_pitch())
         if (pitch_deg > pitch_up_angle_threshold1) then
           stage = 6
           cruise_counter = 0
@@ -117,16 +117,16 @@ function update()
 
       elseif (stage == 7) then  -- Stage6: pitch up and transition to cruise to X
         local roll_rate_rs = 0.0
-        local pitch_rate_rs = pitch_up_rate2 * math.rad(180.0) / 180.0
+        local pitch_rate_rs = math.rad(pitch_up_rate2)
         local yaw_rate_rs = 0.0
-        local thrust = 0.0
+        local thrust = 0.0  -- minimum thrust during inverted flight
 
         -- send rate request
         if not (vehicle:set_target_rate_and_thrust(roll_rate_rs, pitch_rate_rs, yaw_rate_rs, thrust)) then
           gcs:send_text(0, "failed to execute rate command")
         end
 
-        local pitch_deg = ahrs:get_pitch() * 180.0 / math.rad(180.0)
+        local pitch_deg = math.deg(ahrs:get_pitch())
         if (pitch_deg < 0.0 and pitch_deg > pitch_up_angle_threshold2 and pitch_deg > pitch_deg_prev) then
           stage = 4  -- X cruise
           cruise_counter = 0
@@ -144,7 +144,7 @@ function update()
           local alt = -vec_from_home:z()
           local north = vec_from_home:x()
           local east = vec_from_home:y()
-          local yaw_target_rad = yaw_target * math.rad(180.0) / 180.0
+          local yaw_target_rad = math.rad(yaw_target)
           local x = north * math.cos(yaw_target_rad) + east * math.sin(yaw_target_rad)
           local y = -north * math.sin(yaw_target_rad) + east * math.cos(yaw_target_rad)
           if alt < 10 or 50 < alt or x < -10 or 40 < x or math.abs(y) > 10 then
